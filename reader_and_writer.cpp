@@ -16,34 +16,40 @@ void readDictionary (const std::string& filename, std::map<char, std::string>& e
         std::string symbolString;
         std::string codeString;
 
-        if (!std::getline(ss, symbolString, ',') || !std::getline(ss, codeString, ',')) {
+        // Expect format: <byte_value_0-255>,<code>
+        if (!std::getline(ss, symbolString, ',') || !std::getline(ss, codeString)) {
             throw std::runtime_error("INVALID FORMAT AT LINE " + std::to_string(lineNumber));
         }
 
-        if (symbolString.size() != 1) throw std::runtime_error("INVALID SYMBOL AT LINE " + std::to_string(lineNumber));
-
         if (codeString.empty()) throw std::runtime_error("MISSING CODE AT LINE " + std::to_string(lineNumber));
 
-        char symbol = symbolString[0];
+        int value = -1;
+        try {
+            // stoi tolerates leading/trailing spaces
+            value = std::stoi(symbolString);
+        } catch (...) {
+            throw std::runtime_error("INVALID SYMBOL AT LINE " + std::to_string(lineNumber));
+        }
+        if (value < 0 || value > 255) {
+            throw std::runtime_error("INVALID SYMBOL AT LINE " + std::to_string(lineNumber));
+        }
+
+        char symbol = static_cast<char>(static_cast<unsigned char>(value));
         encodeTable[symbol] = codeString;
         decodeTable[codeString] = symbol;
     }
 
-    if (encodeTable.empty()) throw std::runtime_error("EMPTY DIC FILE");
+    // Allow empty dictionary for empty inputs.
 }
 
 void writeDictionary (const std::string& filename, std::map<char, std::string>& encodeTable) {
     std::ofstream file(filename);
     if (!file.is_open()) throw std::runtime_error("COULD NOT OPEN FILE FOR WRITING");
 
+    // Write symbols as numeric byte values (0-255) to avoid CSV issues with arbitrary bytes like ','.
     for (const auto& [symbol, code] : encodeTable) {
-        if (symbol == ',') {
-            file << "\" , \"" << "," << code << "\n"; // processing "," as encoding symbol
-        }
-
-        else {
-            file << symbol << "," << code << "\n";
-        }
+        unsigned int byteVal = static_cast<unsigned char>(symbol);
+        file << byteVal << "," << code << "\n";
     }
 
     file.close();

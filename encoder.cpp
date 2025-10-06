@@ -44,6 +44,12 @@ void sortByProb (std::vector<std::pair<char, double>>& symbols) {
 std::vector<std::tuple<char, double, int>> calculateLength (const std::vector<std::pair<char, double>>& symProb) {
     std::vector<std::tuple<char, double, int>> result;
 
+    // ONLY IF THERE IS SINGE SYMBOL
+    if (symProb.size() == 1) {
+        result.push_back({symProb[0].first, symProb[0].second, 1});
+        return result;
+    }
+
     for (const auto& [symbol, prob] : symProb) {
         int length = static_cast<int>(std::ceil(-std::log2(prob)));
         result.push_back({symbol, prob, length});

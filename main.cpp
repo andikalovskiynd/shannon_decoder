@@ -33,6 +33,16 @@ int main (int argc, char* argv[]) {
         std::string outputFile = "output.bin";
         std::string dictFile = "dictionary.csv";
 
+        // Support positional arguments: -e|-d <input> <output> <dict>
+        if (!arguments.empty() && (arguments[0] == "-e" || arguments[0] == "-d")) {
+            if (arguments.size() >= 4) {
+                inputFile = std::string(arguments[1]);
+                outputFile = std::string(arguments[2]);
+                dictFile = std::string(arguments[3]);
+            }
+        }
+
+        // Also support flag-based overrides
         for (size_t i = 1; i < arguments.size(); ++i) {
             if (arguments[i] == "--input" && i + 1 < arguments.size()) inputFile = std::string(arguments[++i]);
             if (arguments[i] == "--output" && i + 1 < arguments.size()) outputFile = std::string(arguments[++i]);
